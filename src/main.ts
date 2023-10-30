@@ -1,4 +1,9 @@
 import { ErrorMapper } from "utils/ErrorMapper";
+import Spawns from "./components/buildings/Spawns";
+import TaskService, { RoomDetail } from "./components/creeps/tasks/TaskService";
+import { TaskDetail } from "./components/creeps/utils/CreepMemoryUtil";
+import CreepCenter from "./components/creeps/CreepCenter";
+import ConstructionSite from "./components/buildings/ConstructionSite";
 
 declare global {
   /*
@@ -16,9 +21,17 @@ declare global {
   }
 
   interface CreepMemory {
+    name: string;
     role: string;
     room: string;
-    working: boolean;
+    hasTask ?: boolean
+    taskDetail ?: TaskDetail | null;
+    task ?: ((creep: Creep) => boolean) | null;
+  }
+
+  interface RoomMemory {
+    roomDetail: RoomDetail;
+    init: boolean;
   }
 
   // Syntax for adding proprties to `global` (ex "global.log")
@@ -32,7 +45,14 @@ declare global {
 // When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
 // This utility uses source maps to get the line numbers and file names of the original, TS source code
 export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
+  // console.log(`Current game tick is ${Game.time}`);
+
+  TaskService.process()
+
+  ConstructionSite.process()
+  Spawns.doProcess(Game.spawns)
+
+  CreepCenter.process()
 
   // Automatically delete memory of missing creeps
   for (const name in Memory.creeps) {
